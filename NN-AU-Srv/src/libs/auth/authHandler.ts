@@ -102,8 +102,14 @@ class AuthHandler {
 
 
 	getToken = async () => {
-		const token = await this._getGGApiToken();
-		return token;
+		// if (this._isAuthInvalid()) {
+			const token = await this._getGGApiToken();
+			return token;
+		// } else {
+		// 	const token = this._data.token;
+		// 	return token;
+		// }
+		
 	};
 
 

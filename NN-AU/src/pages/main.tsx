@@ -2,6 +2,7 @@ import { useState } from "react";
 import axios from "axios";
 import { Button, Flex, Switch } from 'antd';
 import TextArea from "antd/es/input/TextArea";
+import { LucideTally3, LucideTally4 } from "lucide-react";
 
 
 
@@ -14,6 +15,20 @@ export const MainPage = () => {
 
 
 
+  const renderImg = async (file_id: string) => {
+    let image = await axios({
+      method: 'GET',
+      maxBodyLength: Infinity,
+      url: `http://localhost:5000/getImg/${file_id}`,
+
+      withCredentials: true,
+    });
+
+    // console.log(image)
+    // const bimage = btoa(image);
+    document.getElementById('api-result')!.innerHTML = `<img src="data:image/jpeg;base64,${image}">`;
+  };
+
   const sendToGChat = async () => {
     const response = await axios({
       method: 'POST',
@@ -23,7 +38,15 @@ export const MainPage = () => {
     });
 
     setIsResponseGot(true);
-    setResponse(response.data);
+
+    if (response.data.includes('<img')) {
+      const substr = response.data.slice(10, response.data.indexOf('\"', 10));
+
+      setResponse('');
+      renderImg(substr);
+    } else {
+      setResponse(response.data);
+    }
   };
 
   
@@ -54,13 +77,6 @@ export const MainPage = () => {
         }}>
           <TextArea onChange={e => setPrompt(e.target.value)}/>
           <Button onClick={sendToGChat}>Отправить</Button>
-
-          {/*<Switch onChange={checked => {
-            if (mode === 'gg') 
-              mode = 'speech';
-            else 
-              mode = 'gg'; 
-          }}/>*/}
         </Flex>
 
         {
@@ -82,6 +98,15 @@ export const MainPage = () => {
             //   </>) 
 
         }
+
+        <div 
+          id="api-result" 
+          className="api-response" 
+          style={{
+            width: '50%',
+            marginLeft: 5,
+          }}
+        ></div> 
       </Flex>
     </div>
   )

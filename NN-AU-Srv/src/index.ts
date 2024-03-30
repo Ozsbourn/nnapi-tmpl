@@ -1,4 +1,5 @@
 import express, { response } from 'express'
+import https from 'https';
 import { 
     headerTypes, 
     headerValues 
@@ -11,6 +12,8 @@ import { ContentType as recContentType,  recognizeVoice }   from './controllers/
 import { makeRequestGGApi } from './controllers/ggApiController';
 
 import fs    from 'fs';
+import axios from 'axios';
+import { authHandler } from './libs/auth/authHandler';
 
 
 
@@ -53,6 +56,30 @@ app.post('/synth/:type/:content', async (req, res) => {
 /**
  * Test routes for testing API w/o frontend (call by GET from browser)
  */
+app.get('/getImg/:file_id', async (req, res) => {
+    const token = await authHandler.getToken();
+    axios({
+        method: 'get',
+        maxBodyLength: Infinity,
+        
+        url: `https://gigachat.devices.sberbank.ru/api/v1/files/${req.params.file_id}/content`,
+        headers: { 
+            'Accept': 'application/jpg', 
+            'Authorization': 'Bearer ' + token,
+        },
+
+        // Debug [dangerous for production cuz pass self-signed TLS certificates]
+        httpsAgent: new https.Agent({
+            rejectUnauthorized: false,
+        }),
+    })
+    .then((response) => {
+        res.send(response.data);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+});
 app.get('/gg/:content', async (req, res) => {
     const result = await makeRequestGGApi(req.params.content);
     res.send(result);
